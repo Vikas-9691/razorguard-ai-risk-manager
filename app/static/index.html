@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RazorGuard AI – Autonomous Risk Manager & Chargeback Defense</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            },
+            darkbg: '#080c14',
+            surface: '#111827',
+            surfaceborder: '#1f2937'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Vis.js for Network Graph -->
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="border-b border-gray-800 bg-surface/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <i data-lucide="shield-alert" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">RazorGuard AI</span>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Track 02 · Defense-Only</span>
+          </div>
+          <p class="text-xs text-slate-400">Autonomous Risk Engine & Dispute Sentinel</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800" id="main-nav">
+        <button onclick="switchTab('overview')" data-tab="overview" class="nav-tab active-tab px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-2 bg-blue-600 text-white shadow">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Overview</span>
+        </button>
+        <button onclick="switchTab('simulator')" data-tab="simulator" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-2">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>Live Simulator</span>
+        </button>
+        <button onclick="switchTab('benchmark')" data-tab="benchmark" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-2">
+          <i data-lucide="gauge" class="w-4 h-4"></i>
+          <span>Held-Out Benchmark</span>
+        </button>
+        <button onclick="switchTab('disputes')" data-tab="disputes" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-2">
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+          <span>Dispute Auto-Responder</span>
+        </button>
+        <button onclick="switchTab('abuse-rings')" data-tab="abuse-rings" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-2">
+          <i data-lucide="share-2" class="w-4 h-4"></i>
+          <span>Abuse Rings</span>
+        </button>
+        <button onclick="switchTab('transactions')" data-tab="transactions" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-2">
+          <i data-lucide="list" class="w-4 h-4"></i>
+          <span>Transactions</span>
+        </button>
+      </nav>
+
+      <!-- System Status Indicator -->
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-medium text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Engine Active (v1.0)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ========================================================================= -->
+    <div id="tab-overview" class="tab-content space-y-6">
+      
+      <!-- Top Metrics Strip -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Scanned Transactions</p>
+            <h3 class="text-2xl font-bold text-white mt-1" id="stat-total-txns">--</h3>
+            <p class="text-xs text-slate-400 mt-1 flex items-center text-emerald-400 font-medium">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1"></i> Real-time Telemetry
+            </p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <i data-lucide="activity" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Gross Losses Prevented</p>
+            <h3 class="text-2xl font-bold text-emerald-400 mt-1" id="stat-loss-prevented">₹0.00</h3>
+            <p class="text-xs text-slate-400 mt-1">Intercepted Fraud & RTO</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <i data-lucide="badge-indian-rupee" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Held-Out Test Precision</p>
+            <h3 class="text-2xl font-bold text-white mt-1" id="stat-precision">--%</h3>
+            <p class="text-xs text-blue-400 mt-1 font-medium">FPR: <span id="stat-fpr">0.11%</span> (Minimal Friction)</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <i data-lucide="target" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Chargeback Auto-Defended</p>
+            <h3 class="text-2xl font-bold text-cyan-400 mt-1" id="stat-disputes-rate">100%</h3>
+            <p class="text-xs text-slate-400 mt-1">3DS & OTP Delivery Dossiers</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <i data-lucide="file-badge-2" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Visual Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Live Decision Stream -->
+        <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                <i data-lucide="layers" class="w-5 h-5 text-blue-400"></i>
+                <span>Real-Time Risk Decision Stream</span>
+              </h3>
+              <p class="text-xs text-slate-400">Continuous scoring of incoming orders across UPI, Card, NetBanking & COD</p>
+            </div>
+            <button onclick="switchTab('simulator')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition flex items-center space-x-1 shadow">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+              <span>Test New Order</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-3">Txn ID</th>
+                  <th class="py-3 px-3">Amount</th>
+                  <th class="py-3 px-3">Mode</th>
+                  <th class="py-3 px-3">Risk Score</th>
+                  <th class="py-3 px-3">Action</th>
+                  <th class="py-3 px-3">Key Driver</th>
+                </tr>
+              </thead>
+              <tbody id="overview-transactions-tbody" class="divide-y divide-slate-800 font-mono">
+                <tr><td colspan="6" class="py-6 text-center text-slate-500 font-sans">Loading real-time records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Defense Architecture Card -->
+        <div class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
+          <div>
+            <h3 class="text-base font-semibold text-white flex items-center space-x-2 mb-2">
+              <i data-lucide="shield" class="w-5 h-5 text-indigo-400"></i>
+              <span>Defense-Only Rules Engine</span>
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+              RazorGuard operates under strict defense-only constraints, protecting merchant margins through:
+            </p>
+
+            <div class="space-y-3 text-xs">
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80">
+                <div class="flex items-center space-x-2 font-medium text-emerald-400">
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                  <span>Layer 1: Pre-Auth ML Classifier</span>
+                </div>
+                <p class="text-slate-400 mt-1">Calibrated Random Forest & Gradient Boosted Ensemble evaluated on held-out test data.</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80">
+                <div class="flex items-center space-x-2 font-medium text-amber-400">
+                  <i data-lucide="share-2" class="w-4 h-4"></i>
+                  <span>Layer 2: Abuse Ring Sentinel</span>
+                </div>
+                <p class="text-slate-400 mt-1">Real-time device multiplexing and velocity clustering against bot syndicates.</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80">
+                <div class="flex items-center space-x-2 font-medium text-cyan-400">
+                  <i data-lucide="file-check" class="w-4 h-4"></i>
+                  <span>Layer 3: Dispute Auto-Responder</span>
+                </div>
+                <p class="text-slate-400 mt-1">Instant rebuttal dossier compilation with 3DS Cavv and OTP delivery proofs.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300">
+            <span class="font-semibold">Razorpay Buildathon Benchmark:</span> Zero offensive capabilities. Zero customer data leakage.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: LIVE SIMULATOR -->
+    <!-- ========================================================================= -->
+    <div id="tab-simulator" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Simulator Input Form -->
+        <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-800 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="sliders" class="w-5 h-5 text-blue-400"></i>
+                <span>Transaction Risk Simulator</span>
+              </h3>
+              <p class="text-xs text-slate-400">Tweak transaction parameters to evaluate live ML inference & explainability</p>
+            </div>
+            
+            <!-- Quick Preset Scenarios -->
+            <div class="flex items-center space-x-1.5">
+              <button onclick="loadPreset('safe_upi')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium">Safe UPI</button>
+              <button onclick="loadPreset('stolen_card')" class="px-2.5 py-1 rounded bg-rose-950/60 hover:bg-rose-900 text-xs text-rose-300 border border-rose-800 font-medium">Stolen Card</button>
+              <button onclick="loadPreset('cod_rto')" class="px-2.5 py-1 rounded bg-amber-950/60 hover:bg-amber-900 text-xs text-amber-300 border border-amber-800 font-medium">COD RTO Abuse</button>
+            </div>
+          </div>
+
+          <form id="simulator-form" class="space-y-4 text-xs font-sans">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Amount (INR)</label>
+                <input type="number" id="sim-amount" value="2499" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Payment Mode</label>
+                <select id="sim-payment-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                  <option value="UPI">UPI (BHIM/GPay/PhonePe)</option>
+                  <option value="CREDIT_CARD">Credit Card</option>
+                  <option value="DEBIT_CARD">Debit Card</option>
+                  <option value="COD">Cash On Delivery (COD)</option>
+                  <option value="NETBANKING">NetBanking</option>
+                  <option value="BNPL">BNPL / PayLater</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Item Category</label>
+                <select id="sim-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                  <option value="ELECTRONICS">Electronics (Phones/Laptops)</option>
+                  <option value="APPAREL">Apparel & Fashion</option>
+                  <option value="GAMING_VOUCHER">Digital Gaming Voucher</option>
+                  <option value="JEWELLERY">Jewellery / High Value</option>
+                  <option value="GROCERY">Grocery / Essentials</option>
+                  <option value="TRAVEL_TICKET">Travel / Airline Ticket</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">1-Hour Velocity (Txns)</label>
+                <input type="number" id="sim-velocity-1h" value="1" min="0" max="20" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Account Age (Days)</label>
+                <input type="number" id="sim-account-age" value="180" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Historical RTO Rate</label>
+                <input type="number" id="sim-rto-rate" value="0.05" step="0.05" min="0" max="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Origin IP Country</label>
+                <select id="sim-ip-country" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+                  <option value="IN">IN (India - Domestic)</option>
+                  <option value="US">US (United States)</option>
+                  <option value="NG">NG (Nigeria)</option>
+                  <option value="RU">RU (Russia)</option>
+                  <option value="SG">SG (Singapore)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Delivery Distance (KM)</label>
+                <input type="number" id="sim-distance" value="12" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Past Disputes</label>
+                <input type="number" id="sim-disputes" value="0" min="0" max="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+            </div>
+
+            <!-- Checkbox toggles -->
+            <div class="flex items-center space-x-6 pt-1">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="sim-vpn" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+                <span class="text-slate-300 font-medium">VPN / Commercial Proxy</span>
+              </label>
+
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="sim-card-match" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+                <span class="text-slate-300 font-medium">Card BIN Matches Domestic</span>
+              </label>
+            </div>
+
+            <button type="button" onclick="runSimulation()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+              <span>Execute AI Risk Inspection</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Real-time Score Output Panel -->
+        <div class="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-5">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Risk Verdict</span>
+              <span id="sim-verdict-tier" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">LOW RISK</span>
+            </div>
+
+            <!-- Risk Score Gauge -->
+            <div class="py-6 flex flex-col items-center justify-center">
+              <div class="relative flex items-center justify-center">
+                <div class="w-32 h-32 rounded-full border-8 border-slate-800 flex items-center justify-center" id="sim-gauge-circle">
+                  <span class="text-3xl font-extrabold text-white font-mono" id="sim-score-value">8.4</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 mt-2">Risk Probability Score (0 - 100)</p>
+              
+              <!-- Action Pill -->
+              <div class="mt-4 px-4 py-1.5 rounded-xl font-mono text-sm font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" id="sim-action-pill">
+                ACTION: ALLOW
+              </div>
+            </div>
+
+            <!-- Top Risk Drivers -->
+            <div class="space-y-2">
+              <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Explainability Factors</h4>
+              <div id="sim-drivers-list" class="space-y-1.5 text-xs">
+                <div class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-300">Run a simulation to generate explainability drivers.</div>
+              </div>
+            </div>
+
+            <!-- Underwriting Narrative -->
+            <div class="mt-4 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 leading-relaxed" id="sim-narrative">
+              Underwriting explanation will appear here after scoring.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: HELD-OUT BENCHMARK -->
+    <!-- ========================================================================= -->
+    <div id="tab-benchmark" class="tab-content hidden space-y-6">
+      
+      <!-- Benchmark Headline Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">Test Precision</p>
+          <h4 class="text-xl font-bold text-white mt-1 font-mono" id="bm-precision">99.16%</h4>
+        </div>
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">Test Recall</p>
+          <h4 class="text-xl font-bold text-white mt-1 font-mono" id="bm-recall">99.44%</h4>
+        </div>
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">F1-Score</p>
+          <h4 class="text-xl font-bold text-white mt-1 font-mono" id="bm-f1">99.30%</h4>
+        </div>
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">ROC-AUC</p>
+          <h4 class="text-xl font-bold text-cyan-400 mt-1 font-mono" id="bm-auc">1.0000</h4>
+        </div>
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">False Positive Rate</p>
+          <h4 class="text-xl font-bold text-emerald-400 mt-1 font-mono" id="bm-fpr">0.11%</h4>
+        </div>
+        <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+          <p class="text-xs text-slate-400 uppercase">Net Realized Value</p>
+          <h4 class="text-xl font-bold text-emerald-400 mt-1 font-mono" id="bm-net-value">₹30.07L</h4>
+        </div>
+      </div>
+
+      <!-- Financial Unit Economics & Threshold Simulator -->
+      <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+              <i data-lucide="scale" class="w-5 h-5 text-indigo-400"></i>
+              <span>Honest False-Positive Cost & Threshold Optimizer</span>
+            </h3>
+            <p class="text-xs text-slate-400">Razorpay Evaluation Requirement: Measure dollar trade-off between customer friction vs fraud savings</p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="text-slate-300 font-mono">Cutoff Threshold: <strong id="slider-thresh-label" class="text-blue-400 text-sm">0.50</strong></span>
+          </div>
+        </div>
+
+        <!-- Interactive Threshold Slider -->
+        <div class="space-y-2 py-2">
+          <input type="range" id="threshold-slider" min="0.10" max="0.90" step="0.05" value="0.50" oninput="updateThresholdStats(this.value)" class="w-full accent-blue-500 cursor-pointer">
+          <div class="flex justify-between text-xs text-slate-500 font-mono">
+            <span>0.10 (Aggressive Defense / High FP)</span>
+            <span>0.50 (Calibrated Optimum)</span>
+            <span>0.90 (Permissive / High FN Risk)</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Cost Accounting Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <p class="text-xs text-slate-400 uppercase font-semibold">Gross Fraud Saved (True Positives)</p>
+            <h4 class="text-2xl font-bold text-emerald-400 mt-1 font-mono" id="dyn-gross-saved">₹3,009,000.00</h4>
+            <p class="text-xs text-slate-500 mt-1"><span id="dyn-tp-count">354</span> confirmed fraud attempts blocked</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <p class="text-xs text-slate-400 uppercase font-semibold">False Positive Friction Cost</p>
+            <h4 class="text-2xl font-bold text-rose-400 mt-1 font-mono" id="dyn-fp-cost">₹1,350.00</h4>
+            <p class="text-xs text-slate-500 mt-1"><span id="dyn-fp-count">3</span> genuine customers subjected to friction</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-gradient-to-br from-blue-950/40 to-indigo-950/40 border border-blue-800/60">
+            <p class="text-xs text-blue-300 uppercase font-semibold">Net Realized Merchant Margin</p>
+            <h4 class="text-2xl font-bold text-cyan-300 mt-1 font-mono" id="dyn-net-margin">₹3,007,650.00</h4>
+            <p class="text-xs text-blue-200 mt-1">Net Gain = (Fraud Saved) - (FP Cost)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts & Confusion Matrix Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Confusion Matrix -->
+        <div class="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-base font-semibold text-white flex items-center space-x-2 border-b border-slate-800 pb-3">
+            <i data-lucide="grid" class="w-5 h-5 text-cyan-400"></i>
+            <span>Held-Out Confusion Matrix (3,000 Txns)</span>
+          </h3>
+
+          <div class="grid grid-cols-2 gap-3 font-mono text-center pt-2">
+            <div class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60">
+              <span class="text-xs text-emerald-400 block font-sans">True Positives (TP)</span>
+              <strong class="text-2xl text-emerald-300" id="cm-tp">354</strong>
+              <span class="text-xs text-slate-400 block mt-1">Fraud Blocked</span>
+            </div>
+            <div class="p-4 rounded-xl bg-rose-950/40 border border-rose-800/60">
+              <span class="text-xs text-rose-400 block font-sans">False Positives (FP)</span>
+              <strong class="text-2xl text-rose-300" id="cm-fp">3</strong>
+              <span class="text-xs text-slate-400 block mt-1">Legit Mistakenly Flagged</span>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-xs text-slate-400 block font-sans">False Negatives (FN)</span>
+              <strong class="text-2xl text-amber-300" id="cm-fn">2</strong>
+              <span class="text-xs text-slate-400 block mt-1">Fraud Slippage</span>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-xs text-slate-400 block font-sans">True Negatives (TN)</span>
+              <strong class="text-2xl text-blue-300" id="cm-tn">2,641</strong>
+              <span class="text-xs text-slate-400 block mt-1">Legit Allowed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Threshold Performance Curve -->
+        <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-base font-semibold text-white flex items-center space-x-2 border-b border-slate-800 pb-3">
+            <i data-lucide="line-chart" class="w-5 h-5 text-blue-400"></i>
+            <span>Precision & Recall Curve vs Threshold</span>
+          </h3>
+          <div class="h-64">
+            <canvas id="thresholdCurveChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: DISPUTE AUTO-RESPONDER -->
+    <!-- ========================================================================= -->
+    <div id="tab-disputes" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Disputes List -->
+        <div class="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>
+                <span>Active Chargeback Claims</span>
+              </h3>
+              <p class="text-xs text-slate-400">Auto-responder compiles 3DS & OTP proof packets</p>
+            </div>
+            <button onclick="createNewDisputeModal()" class="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-medium flex items-center space-x-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>New Claim</span>
+            </button>
+          </div>
+
+          <div id="disputes-list-container" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+            <!-- Dispute item cards will load here -->
+          </div>
+        </div>
+
+        <!-- Dossier Preview Panel -->
+        <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <i data-lucide="file-check-2" class="w-5 h-5 text-emerald-400"></i>
+                <span>Compiled Representment Dossier</span>
+              </h3>
+              <p class="text-xs text-slate-400">Formatted for Visa / Mastercard / NPCI Representment Rules</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="dossier-win-prob" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">95.0% Win Prob</span>
+              <button onclick="copyDossierText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center space-x-1 font-medium">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Copy Dossier</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Letter Content Container -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 max-h-[540px] overflow-y-auto font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed" id="dossier-preview-box">
+            Select a dispute on the left to view the auto-generated legal rebuttal dossier.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: ABUSE RING SENTINEL -->
+    <!-- ========================================================================= -->
+    <div id="tab-abuse-rings" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Network Graph Visualizer -->
+        <div class="lg:col-span-8 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <i data-lucide="share-2" class="w-5 h-5 text-rose-400"></i>
+                <span>Syndicate & Abuse Ring Network Graph</span>
+              </h3>
+              <p class="text-xs text-slate-400">Correlates device hardware hashes, VPN clusters, and card hopping</p>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span class="text-slate-400">Device/IP Anchor</span></span>
+              <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span><span class="text-slate-400">Accounts</span></span>
+              <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span class="text-slate-400">Orders</span></span>
+            </div>
+          </div>
+
+          <div id="network-graph-container"></div>
+        </div>
+
+        <!-- Abuse Ring Breakdown Cards -->
+        <div class="lg:col-span-4 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-base font-bold text-white flex items-center space-x-2 border-b border-slate-800 pb-3">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i>
+            <span>Active Syndicate Threats</span>
+          </h3>
+
+          <div id="abuse-clusters-list" class="space-y-3 max-h-[500px] overflow-y-auto pr-1 text-xs">
+            <!-- Cluster cards load here -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: TRANSACTIONS EXPLORER -->
+    <!-- ========================================================================= -->
+    <div id="tab-transactions" class="tab-content hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+              <i data-lucide="database" class="w-5 h-5 text-blue-400"></i>
+              <span>Transaction Intelligence Ledger</span>
+            </h3>
+            <p class="text-xs text-slate-400">Full audit log with risk factor decomposition</p>
+          </div>
+          
+          <!-- Filter Buttons -->
+          <div class="flex items-center space-x-2">
+            <button onclick="filterTransactions('ALL')" class="txn-filter-btn active-filter px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white">ALL</button>
+            <button onclick="filterTransactions('LOW')" class="txn-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700">LOW</button>
+            <button onclick="filterTransactions('MEDIUM')" class="txn-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700">MEDIUM</button>
+            <button onclick="filterTransactions('HIGH')" class="txn-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700">HIGH</button>
+            <button onclick="filterTransactions('CRITICAL')" class="txn-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700">CRITICAL</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider border-b border-slate-800 font-mono">
+              <tr>
+                <th class="py-3 px-3">Txn ID</th>
+                <th class="py-3 px-3">Customer ID</th>
+                <th class="py-3 px-3">Amount</th>
+                <th class="py-3 px-3">Payment Mode</th>
+                <th class="py-3 px-3">City</th>
+                <th class="py-3 px-3">Risk Score</th>
+                <th class="py-3 px-3">Verdict</th>
+                <th class="py-3 px-3">Decision</th>
+              </tr>
+            </thead>
+            <tbody id="full-transactions-tbody" class="divide-y divide-slate-800 font-mono">
+              <!-- Full transaction rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-surface/50 py-4 mt-auto text-center text-xs text-slate-500">
+    <p>RazorGuard AI · Built for Razorpay AI Builder Internship 2026 (Track 02: AI Risk Manager) · Strictly Defense-Only Architecture</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
