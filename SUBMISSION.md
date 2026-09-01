@@ -32,7 +32,7 @@ Benchmark Metrics (30% Held-Out Test Set / 3,000 txns):
 
 ### 4. GitHub Repo URL
 *(Push this project to your GitHub account and paste the public link here)*  
-`https://github.com/<your-username>/razorguard-ai-risk-manager`
+`https://github.com/<Vikas-9691>/razorguard-ai-risk-manager`
 
 ---
 
