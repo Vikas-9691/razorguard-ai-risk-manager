@@ -144,5 +144,5 @@ razorguard-ai-risk-manager/
 ├── run.py                        # Single-command launcher script
 ├── requirements.txt              # Project dependencies
 ├── README.md                     # Documentation
-└── SUBMISSION.md                 # Razorpay application form answers & video pitch script
+
 ```
